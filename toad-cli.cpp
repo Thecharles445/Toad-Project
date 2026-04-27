@@ -2,35 +2,69 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cstring>
-#include "conexion.h" // Usamos el nuevo nombre
+#include "conexion.h"
 
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    // Validamos que el usuario escriba al menos la orden
     if (argc < 2) {
-        cout << "Uso: ./toad-cli <orden> [ruta]" << endl;
+        cout << "Faltan argumentos" << endl;
         return 1;
     }
 
-    PaqueteDatos mi_envio;
+    PaqueteDatos peticion;
+    memset(&peticion, 0, sizeof(PaqueteDatos));
 
-    // Si el comando es "start"
-    if (strcmp(argv[1], "start") == 0) {
-        mi_envio.orden = 1;
-        if (argc > 2) {
-            strcpy(mi_envio.ruta_programa, argv[2]);
-        }
+    string comando = argv[1];
+
+    // identificar que comando metio el usuario
+    if (comando == "start") {
+        if (argc < 3) { cout << "Falta binario" << endl; return 1; }
+        peticion.orden = 1;
+        strcpy(peticion.ruta_programa, argv[2]);
+    } 
+    else if (comando == "stop") {
+        if (argc < 3) { cout << "Falta IID" << endl; return 1; }
+        peticion.orden = 2;
+        peticion.id_interno = stoi(argv[2]);
+    }
+    else if (comando == "ps") {
+        peticion.orden = 3;
+    }
+    else if (comando == "status") {
+        if (argc < 3) { cout << "Falta IID" << endl; return 1; }
+        peticion.orden = 4;
+        peticion.id_interno = stoi(argv[2]);
+    }
+    else if (comando == "kill") {
+        if (argc < 3) { cout << "Falta IID" << endl; return 1; }
+        peticion.orden = 5;
+        peticion.id_interno = stoi(argv[2]);
+    }
+    else if (comando == "zombie") {
+        peticion.orden = 6;
+    }
+    else {
+        cout << "Comando invalido" << endl;
+        return 1;
     }
 
-    // Abrimos el tubo de entrada del gestor y mandamos los datos
-    int tubo = open(RUTA_TUBO_ENTRADA, O_WRONLY);
-    if (tubo != -1) {
-        write(tubo, &mi_envio, sizeof(PaqueteDatos));
-        close(tubo);
-        cout << "Orden enviada al gestor." << endl;
-    } else {
-        cout << "Error: No se pudo conectar con el gestor." << endl;
+    // escribir al gestor
+    int tubo_in = open(TUBO_IN, O_WRONLY);
+    if (tubo_in == -1) {
+        cout << "Error: toadd no esta corriendo" << endl;
+        return 1;
+    }
+    write(tubo_in, &peticion, sizeof(PaqueteDatos));
+    close(tubo_in);
+
+    // esperar y leer respuesta del gestor
+    int tubo_out = open(TUBO_OUT, O_RDONLY);
+    if (tubo_out != -1) {
+        RespuestaDatos respuesta;
+        read(tubo_out, &respuesta, sizeof(RespuestaDatos));
+        cout << respuesta.mensaje << endl;
+        close(tubo_out);
     }
 
     return 0;
