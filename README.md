@@ -1,6 +1,6 @@
 # Gestor de Procesos (toadd & toad-cli)
 
-Este proyecto consiste en un sistema de administracion y monitoreo de procesos compuesto por dos componentes principales que se comunican mediante Pipes Nombrados (FIFOs):
+Este trabajo consiste en un sistema de administracion y monitoreo de procesos compuesto por dos componentes principales que se comunican mediante Pipes Nombrados (FIFOs):
 
 1. **toadd**: Un demonio (daemon) que corre en segundo plano, independiente de la terminal. Se encarga de clonar, monitorear y controlar el ciclo de vida de los procesos hijos.
 2. **toad-cli**: Una herramienta de linea de comandos para interactuar con el gestor y enviar órdenes.
